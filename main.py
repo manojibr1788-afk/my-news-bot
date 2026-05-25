@@ -1,51 +1,54 @@
-import os
-from flask import Flask
 import requests
 
-app = Flask(__name__)
-
-# आपकी वर्किंग चाबियाँ
+# 1. आपकी सीक्रेट चाबियाँ (बिल्कुल सही वाली सेट हैं भाई)
 TELEGRAM_TOKEN = "8116715672:AAFcmrhXOQ6tWkuCncy4Nts8iTf0dqBQbfY"
 TELEGRAM_CHAT_ID = "616338549"
-import os
-GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY")
+GEMINI_API_KEY = "AIzaSyDqaqir_-ZoxlcIiyrWOZXtgaYmqjC8TOw"
 
-@app.route('/')
-def home():
-    # यह सैंपल न्यूज़ है जो टेस्ट के लिए टेलीग्राम पर जाएगी
-    MARKET_NEWS = "Reliance Q4 net profit jumps 15%, beating all market estimates. Management announces big expansion plans."
-    
-    # गूगल जेमिनी का लेटेस्ट स्टेबल एंडपॉइंट
-    gemini_url = f"https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key={GEMINI_API_KEY}"
-    gemini_payload = {
-        "contents": [{
-            "parts": [{
-                "text": f"Analyze this stock market news and give a 1-line sharp summary in Hindi stating if it is Bullish, Bearish, or Neutral for Nifty. News: {MARKET_NEWS}"
-            }]
+# 2. टेस्ट के लिए एक मार्केट की खबर (Sample News)
+MARKET_NEWS = "Reliance Q4 net profit jumps 15%, beating all market estimates. Management announces big expansion plans."
+
+print("Gemini AI खबर का विश्लेषण कर रहा है... कृपया रुकें...")
+
+# 3. Gemini AI को news भेजना (यहाँ v1beta को बदलकर स्टेबल v1 और सही API Key सेट कर दी है)
+gemini_url = f"https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key={GEMINI_API_KEY}"
+
+gemini_payload = {
+    "contents": [{
+        "parts": [{
+            "text": f"You are a stock market expert. Analyze this news and give a short summary in Hindi for traders: {MARKET_NEWS}"
         }]
-    }
-    
-    try:
-        gemini_response = requests.post(gemini_url, json=gemini_payload)
-        gemini_data = gemini_response.json()
-        
-        if 'candidates' in gemini_data:
-            ai_analysis = gemini_data['candidates'][0]['content']['parts'][0]['text'].strip()
-            
-            # टेलीग्राम पर मैसेज भेजने का लॉजिक
-            telegram_url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"
-            telegram_payload = {
-                "chat_id": TELEGRAM_CHAT_ID,
-                "text": f"🤖 *AI न्यूज़ फ़िल्टर अलर्ट*\n\n📰 *खबर:* {MARKET_NEWS}\n\n🧠 *AI का विश्लेषण:* {ai_analysis}",
-                "parse_mode": "Markdown"
-            }
-            requests.post(telegram_url, json=telegram_payload)
-            return f"🎉 सफलता! टेलीग्राम पर मैसेज भेज दिया गया है। AI का जवाब: {ai_analysis}"
-        else:
-            return f"❌ जेमिनी एरर: {gemini_data}"
-    except Exception as e:
-        return f"❌ गड़बड़ हुई भाई: {str(e)}"
+    }]
+}
 
-if __name__ == '__main__':
-    port = int(os.environ.get("PORT", 5000))
-    app.run(host='0.0.0.0', port=port)
+try:
+    response = requests.post(gemini_url, json=gemini_payload)
+    result = response.json()
+    
+    if response.status_code == 200:
+        # AI का जवाब निकालना
+        ai_analysis = result['candidates'][0]['content']['parts'][0]['text']
+        print("\n✅ Gemini AI का विश्लेषण:")
+        print(ai_analysis)
+        
+        # 4. Telegram पर मैसेज भेजना
+        print("\nTelegram पर मैसेज भेज रहा हूँ...")
+        telegram_url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"
+        telegram_payload = {
+            "chat_id": TELEGRAM_CHAT_ID,
+            "text": f"📊 *Market News Analysis*:\n\n{ai_analysis}",
+            "parse_mode": "Markdown"
+        }
+        
+        tele_response = requests.post(telegram_url, json=telegram_payload)
+        if tele_response.status_code == 200:
+            print("🚀 Telegram पर मैसेज सफलतापूर्वक चला गया!")
+        else:
+            print(f"❌ Telegram एरर: {tele_response.text}")
+            
+    else:
+        print(f"❌ Google AI की तरफ से एरर आया है:")
+        print(f"मेसेज: {result.get('error', {}).get('message', 'Unknown Error')}")
+
+except Exception as e:
+    print(f"❌ कुछ गड़बड़ हुई: {e}")
