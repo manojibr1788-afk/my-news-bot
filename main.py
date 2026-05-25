@@ -7,7 +7,8 @@ app = Flask(__name__)
 # आपकी वर्किंग चाबियाँ
 TELEGRAM_TOKEN = "8116715672:AAFcmrhXOQ6tWkuCncy4Nts8iTf0dqBQbfY"
 TELEGRAM_CHAT_ID = "616338549"
-GEMINI_API_KEY = "AIzaSyBhHcpwxcQvaeuQAfeZ3dgV5BorNxOZbKA"
+import os
+GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY")
 
 @app.route('/')
 def home():
