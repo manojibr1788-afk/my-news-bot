@@ -16,7 +16,7 @@ def home():
     MARKET_NEWS = "Reliance Q4 net profit jumps 15%, beating all market estimates. Management announces big expansion plans."
     
     # गूगल जेमिनी का लेटेस्ट स्टेबल एंडपॉइंट
-    gemini_url = f"https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key={GEMINI_API_KEY}"
+    gemini_url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={GEMINI_API_KEY}"
     gemini_payload = {
         "contents": [{
             "parts": [{
